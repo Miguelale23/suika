@@ -6,7 +6,7 @@ const config = {
     scale: {
         width: 600,
         height: 850,
-        zoom: 1,
+        zoom: 0.8,
         autoCenter: Phaser.Scale.Center.CENTER_HORIZONTALLY
     },
     pixelArt: true,
