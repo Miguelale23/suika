@@ -6,6 +6,7 @@ export default class level extends Phaser.Scene{
         super({key:'level'})
 
         this.startFruitOrder = 1;
+        this.points = 0
     }
 
     preload()
@@ -19,11 +20,12 @@ export default class level extends Phaser.Scene{
 
     actualizeText(points)
     {
+        this.points += points
         this.scoreText1.destroy()
         this.scoreText2.destroy()
-        this.scoreText1 = this.add.text(47,20,'123', {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
+        this.scoreText1 = this.add.text(47,20,this.points, {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
         this.scoreText1.setTint(0xffb10a)
-        this.scoreText2 = this.add.text(50,20,'123', {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
+        this.scoreText2 = this.add.text(50,20,this.points, {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
         this.scoreText2.setTint(0xffd373)
     }
 
@@ -60,7 +62,7 @@ export default class level extends Phaser.Scene{
 
     setupInput()
     {
-        this.spawnPointY = 80
+        this.spawnPointY = 120
         this.spawnPointX = this.game.config.width / 2
         this.input.on('pointermove',(pointer)=> {
             this.spawnPointX = pointer.x;
@@ -77,7 +79,8 @@ export default class level extends Phaser.Scene{
             this.fruit = this.add.image(this.spawnPointX + offset < this.game.config.width ? (this.spawnPointX - offset > 0 ? this.spawnPointX : offset) : this.game.config.width - offset,
                 this.spawnPointY,'fruit' + this.currentFruit).setScale(this.fruitScale.get('fruit' + this.currentFruit))
 
-        })
+            this.nextFruitImage.destroy()
+            this.nextFruitImage = this.add.image(540, 50,'fruit' + this.nextFruit).setScale(0.2)        })
     }
 
     generateData()
@@ -112,19 +115,22 @@ export default class level extends Phaser.Scene{
             ['fruit4', 30],['fruit5', 46]
         ])
 
+        this.numberFromString = new Map([
+            ['fruit1', 1],['fruit2', 2],['fruit3', 3],
+            ['fruit4', 4],['fruit5', 5],['fruit6', 6],
+            ['fruit7', 7],['fruit8', 8],['fruit9', 9],
+            ['fruit10', 10],['fruit11', 11]
+        ])
+        
         this.startFruitArray = [1,2,3,3,4]
     }
 
     create()
     {
-        if (this.game.device.isMobile) {
-            // Si es un dispositivo móvil, ajustar el zoom
-            this.cameras.main.setZoom(0.5); // Ajusta el valor según tus necesidades
-        }
         //bordes mapa
         this.matter.world.setBounds(0, -1, 601, 851);
         //limite
-        this.add.image(0,120,'limit').setOrigin(0,0).setAlpha(0.3)
+        this.add.image(0,150,'limit').setOrigin(0,0).setAlpha(0.3)
 
         //fruit stats
         this.fruitGroup = this.add.group({
@@ -132,23 +138,44 @@ export default class level extends Phaser.Scene{
         })
         this.generateData()
 
-        /*this.matter.world.add.collider(this.fruitGroup, this.fruitGroup, (fruit1, fruit2)=>{
-            console.log("")
-        })*/
+        this.matter.world.on("collisionstart", (event, fruitA, fruitB) => {
+            if ((fruitA.gameObject instanceof Fruit && fruitB.gameObject instanceof Fruit) &&
+                fruitA.gameObject.texture.key == fruitB.gameObject.texture.key)
+            {
+                let newX = (fruitA.position.x + fruitB.position.x) / 2;
+                let newY = (fruitA.position.y + fruitB.position.y) / 2;
+
+                let number = this.numberFromString.get(fruitA.gameObject.texture.key)
+                fruitA.gameObject.destroy()
+                fruitB.gameObject.destroy()
+                this.actualizeText(number * 2)
+
+                if (number < 11)
+                {
+                    this.fruitGroup.add(new Fruit(this,newX,newY, this.getFruitConfig('fruit' + (number + 1))))
+                }
+            }
+        })
 
         //input
         this.setupInput()
 
         //texto
-        this.scoreText1 = this.add.text(47,20,'0', {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
+        this.scoreText1 = this.add.text(47,17,'0', {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
         this.scoreText1.setTint(0xffb10a)
         this.scoreText2 = this.add.text(50,20,'0', {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
         this.scoreText2.setTint(0xffd373)
+
+        this.nextText1 = this.add.text(367,17,'Next:', {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
+        this.nextText1.setTint(0xffb10a)
+        this.nextText2 = this.add.text(370,20,'Next:', {fontFamily:'suikaFont', fontSize: '70px'}).setDepth(5)
+        this.nextText2.setTint(0xffd373)
 
         // nube
         this.currentFruit = 1;
         this.nextFruit = 1;
         this.fruit = this.add.image(this.spawnPointX,this.spawnpointY,'fruit' + this.currentFruit).setScale(this.fruitScale.get('fruit' + this.currentFruit))
+        this.nextFruitImage = this.add.image(540, 50,'fruit' + this.nextFruit).setScale(0.2)
     }
 
     update()
