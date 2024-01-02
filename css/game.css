@@ -1,10 +1,6 @@
 /*@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');*/
 
 @font-face {
-  font-family: 'arcade_classic';
-  src: url('../assets/fonts/arcade.ttf') format('truetype');
-}
-@font-face {
   font-family: 'suikaFont';
   src: url('../assets/fonts/Cute\ Love.ttf') format('truetype');
 }
